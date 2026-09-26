@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Panic Typer v2.0</title>
     <style>
         body { 
@@ -9,31 +10,34 @@
             text-align: center; 
             background-color: #1a1a1a; 
             color: #ff4757; 
-            margin-top: 80px; 
-            overflow: hidden;
+            margin-top: 50px; 
         }
         .container { 
             background: #2f3542; 
-            padding: 40px; 
+            padding: 30px; 
             border: 4px solid #ff4757; 
             display: inline-block; 
             box-shadow: 10px 10px 0px #000;
-            width: 500px;
+            width: 90%;
+            max-width: 500px;
+            box-sizing: border-box;
         }
         textarea { 
-            width: 90%; 
-            height: 120px; 
+            width: 100%; 
+            height: 140px; 
             font-size: 18px; 
             padding: 10px; 
             background: #1e272e; 
             color: #2ed573; 
             border: 2px solid #ced6e0; 
             resize: none;
+            box-sizing: border-box;
         }
         #statusBar { 
-            font-size: 20px; 
+            font-size: 18px; 
             font-weight: bold; 
             margin-bottom: 20px; 
+            word-wrap: break-word;
         }
     </style>
 </head>
@@ -41,53 +45,70 @@
 
     <div class="container">
         <h1>⚠️ THE PANIC TYPER ⚠️</h1>
-        <p style="color: #ced6e0; font-weight: bold;">RULES: Pause for 1.5 seconds or hit backspace, and your work vaporizes.</p>
+        <p style="color: #ced6e0; font-weight: bold; font-size: 14px;">RULES: Pause for 1.5 seconds or hit backspace, and your work vaporizes.</p>
         
         <div id="statusBar"> 🟢 SYSTEM ACTIVE: START TYPING...</div>
         
-        <!-- Handles inputs and blocks editing keys -->
-        <textarea id="typingArea" oninput="resetPanicTimer()" onkeydown="blockBackspace(event)" placeholder="Type fast... do not look back..."></textarea>
+        <!-- We use 'beforeinput' and 'input' to catch mobile signals perfectly -->
+        <textarea id="typingArea" onbeforeinput="handleBeforeInput(event)" oninput="handleInput(event)" placeholder="Type fast... do not look back..."></textarea>
     </div>
 
     <script>
         var panicTimer = null;
+        var lastTextLength = 0;
         var statusText = document.getElementById("statusBar");
         var textInput = document.getElementById("typingArea");
 
-        // ❌ BLOCK BACKSPACE AND DELETE KEYS
-        function blockBackspace(event) {
-            // Keycode 8 is Backspace, Keycode 46 is Delete
-            if (event.keyCode === 8 || event.keyCode === 46) {
-                event.preventDefault(); // Stop the browser from executing the delete action
-                
-                // Instantly penalize them by wiping the input box
-                textInput.value = "";
-                clearTimeout(panicTimer);
-                alert("🚫 ILLEGAL MOVE! Backspace is strictly forbidden. Progress wiped.");
-                
-                statusText.innerText = "💀 BACKSPACE DETECTED. RESET.";
-                statusText.style.color = "#ff4757";
+        // 📱 1. MOBILE ADVANCED DETECTION (Catches the backspace signal BEFORE the screen updates)
+        function handleBeforeInput(event) {
+            if (event.inputType && event.inputType.startsWith("delete")) {
+                triggerBackspacePenalty();
             }
         }
 
-        // ⏱️ TIMER MANAGEMENT
-        function resetPanicTimer() {
+        // 💻 2. DESKTOP FALLBACK & TIMER CONTROLLER
+        function handleInput(event) {
+            var currentLength = textInput.value.length;
+
+            // Secondary check: If the user managed to bypass 'beforeinput' and character count dropped
+            if (currentLength < lastTextLength || (event.inputType && event.inputType.startsWith("delete"))) {
+                triggerBackspacePenalty();
+                return;
+            }
+
+            // Sync structural character tracking state
+            lastTextLength = currentLength;
+
+            // RESET THE COUNTDOWN BOMB
             clearTimeout(panicTimer);
-            
             statusText.innerText = "🟢 TYPING ALIVE... KEEP GOING!";
             statusText.style.color = "#2ed573";
 
-            // 🔄 Set the countdown bomb to exactly 1500 milliseconds (1.5 seconds)
+            // Set the 1.5-second fuse
             panicTimer = setTimeout(triggerExplosion, 1500);
         }
 
-        // 💥 WIPEOUT TRIGGER
+        // 🚫 PENALTY WIPE: BACKSPACE
+        function triggerBackspacePenalty() {
+            textInput.value = "";
+            lastTextLength = 0;
+            clearTimeout(panicTimer);
+            
+            statusText.innerText = "💀 BACKSPACE DETECTED. RESET.";
+            statusText.style.color = "#ff4757";
+            
+            alert("🚫 ILLEGAL MOVE! Backspace is strictly forbidden. Progress wiped.");
+        }
+
+        // 💥 PENALTY WIPE: TIMEOUT
         function triggerExplosion() {
             textInput.value = "";
-            alert("💥 TOO SLOW! You paused for 1.5 seconds. Your progress has been vaporized.");
+            lastTextLength = 0;
             
             statusText.innerText = "💀 WIPEOUT COMPLETE. TRY AGAIN.";
             statusText.style.color = "#ff4757";
+            
+            alert("💥 TOO SLOW! You paused for 1.5 seconds. Your progress has been vaporized.");
         }
     </script>
 
