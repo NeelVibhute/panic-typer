@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>The Panic Typer v2.0</title>
+    <style>
+        body { 
+            font-family: 'Courier New', monospace; 
+            text-align: center; 
+            background-color: #1a1a1a; 
+            color: #ff4757; 
+            margin-top: 80px; 
+            overflow: hidden;
+        }
+        .container { 
+            background: #2f3542; 
+            padding: 40px; 
+            border: 4px solid #ff4757; 
+            display: inline-block; 
+            box-shadow: 10px 10px 0px #000;
+            width: 500px;
+        }
+        textarea { 
+            width: 90%; 
+            height: 120px; 
+            font-size: 18px; 
+            padding: 10px; 
+            background: #1e272e; 
+            color: #2ed573; 
+            border: 2px solid #ced6e0; 
+            resize: none;
+        }
+        #statusBar { 
+            font-size: 20px; 
+            font-weight: bold; 
+            margin-bottom: 20px; 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>⚠️ THE PANIC TYPER ⚠️</h1>
+        <p style="color: #ced6e0; font-weight: bold;">RULES: Pause for 1.5 seconds or hit backspace, and your work vaporizes.</p>
+        
+        <div id="statusBar"> 🟢 SYSTEM ACTIVE: START TYPING...</div>
+        
+        <!-- Handles inputs and blocks editing keys -->
+        <textarea id="typingArea" oninput="resetPanicTimer()" onkeydown="blockBackspace(event)" placeholder="Type fast... do not look back..."></textarea>
+    </div>
+
+    <script>
+        var panicTimer = null;
+        var statusText = document.getElementById("statusBar");
+        var textInput = document.getElementById("typingArea");
+
+        // ❌ BLOCK BACKSPACE AND DELETE KEYS
+        function blockBackspace(event) {
+            // Keycode 8 is Backspace, Keycode 46 is Delete
+            if (event.keyCode === 8 || event.keyCode === 46) {
+                event.preventDefault(); // Stop the browser from executing the delete action
+                
+                // Instantly penalize them by wiping the input box
+                textInput.value = "";
+                clearTimeout(panicTimer);
+                alert("🚫 ILLEGAL MOVE! Backspace is strictly forbidden. Progress wiped.");
+                
+                statusText.innerText = "💀 BACKSPACE DETECTED. RESET.";
+                statusText.style.color = "#ff4757";
+            }
+        }
+
+        // ⏱️ TIMER MANAGEMENT
+        function resetPanicTimer() {
+            clearTimeout(panicTimer);
+            
+            statusText.innerText = "🟢 TYPING ALIVE... KEEP GOING!";
+            statusText.style.color = "#2ed573";
+
+            // 🔄 Set the countdown bomb to exactly 1500 milliseconds (1.5 seconds)
+            panicTimer = setTimeout(triggerExplosion, 1500);
+        }
+
+        // 💥 WIPEOUT TRIGGER
+        function triggerExplosion() {
+            textInput.value = "";
+            alert("💥 TOO SLOW! You paused for 1.5 seconds. Your progress has been vaporized.");
+            
+            statusText.innerText = "💀 WIPEOUT COMPLETE. TRY AGAIN.";
+            statusText.style.color = "#ff4757";
+        }
+    </script>
+
+</body>
+</html>
